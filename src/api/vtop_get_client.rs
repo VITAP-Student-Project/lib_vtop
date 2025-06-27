@@ -111,3 +111,23 @@ pub async fn fetch_hostel_report(
 ) -> Result<HostelOutingData, VtopError> {
     client.get_hostel_report().await
 }
+
+#[flutter_rust_bridge::frb()]
+pub async fn fetch_hostel_outing(
+    client: &mut VtopClient,
+    booking_id: String,
+) -> Result<Vec<u8>, VtopError> {
+    client.get_hostel_outing_pdf(booking_id).await
+}
+
+#[flutter_rust_bridge::frb()]
+pub async fn submit_hostel_outing_form(
+    client: &mut VtopClient,
+    purpose_of_visit: String,
+    outing_date: String,
+    contact_number: String,
+    out_place: String,
+    out_time: String,
+) -> Result<String, VtopError> {
+    client.submit_outing_form(purpose_of_visit, outing_date, contact_number, out_place, out_time).await
+}

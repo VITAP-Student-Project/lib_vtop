@@ -241,3 +241,15 @@ pub struct HostelOutingData {
     pub records: Vec<OutingRecord>,
     pub update_time: u64,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(dart_metadata=("freezed", "immutable" import "package:meta/meta.dart" as meta))]
+#[frb]
+pub struct OutingFormData {
+    pub purpose_of_visit: String,
+    pub outing_date: String,
+    pub contact_number: String,
+    pub out_place: String,
+    pub out_time: String,
+    pub parent_contact_number: String,
+}

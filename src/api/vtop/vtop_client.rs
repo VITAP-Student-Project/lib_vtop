@@ -85,6 +85,82 @@ impl VtopClient {
         Ok(hostel_data)
     }
 
+    // Hostel Get Outing PDF
+    pub async fn get_hostel_outing_pdf(&mut self, booking_id: String) -> VtopResult<Vec<u8>> {
+        if !self.session.is_authenticated() {
+            return Err(VtopError::SessionExpired);
+        }
+        let url = format!(
+            "{}/vtop/hostel/downloadOutingForm/{}?authorizedID={}&_csrf={}&x={}",
+            self.config.base_url, booking_id, self.username,
+            self.session.get_csrf_token().ok_or(VtopError::SessionExpired)?,
+            chrono::Utc::now().to_rfc2822()
+        );
+
+        let res = self
+            .client
+            .get(url)
+            .send()
+            .await
+            .map_err(|_| VtopError::NetworkError)?;
+
+        if !res.status().is_success() || res.url().to_string().contains("login") {
+            self.session.set_authenticated(false);
+            return Err(VtopError::SessionExpired);
+        }
+
+        let bytes = res.bytes().await.map_err(|_| VtopError::VtopServerError)?;
+        Ok(bytes.to_vec())
+    }
+
+    // Submit Outing form 
+    pub async fn submit_outing_form(
+        &mut self,
+        purpose_of_visit: String,
+        outing_date: String,
+        contact_number: String,
+        out_place: String,
+        out_time: String,
+    ) -> VtopResult<String> {
+        if !self.session.is_authenticated() {
+            return Err(VtopError::SessionExpired);
+        }
+        let url = format!("{}/vtop/hostel/saveOutingForm", self.config.base_url);
+        
+        let form = multipart::Form::new()
+            .text("_csrf", self.session.get_csrf_token().ok_or(VtopError::SessionExpired)?)
+            .text("authorizedID", self.username.clone())
+            .text("regNo", self.username.clone())
+            .text("name", "") // This might need to be dynamic
+            .text("applicationNo", "") // This might need to be dynamic
+            .text("gender", "") // This might need to be dynamic
+            .text("hostelBlock", "") // This might need to be dynamic
+            .text("roomNo", "") // This might need to be dynamic
+            .text("outPlace", out_place)
+            .text("purposeOfVisit", purpose_of_visit)
+            .text("outingDate", outing_date)
+            .text("outTime", out_time)
+            .text("contactNumber", contact_number)
+            .text("parentContactNumber", "") // This might need to be dynamic
+            .text("x=", chrono::Utc::now().to_rfc2822());
+
+        let res = self
+            .client
+            .post(url)
+            .multipart(form)
+            .send()
+            .await
+            .map_err(|_| VtopError::NetworkError)?;
+
+        if !res.status().is_success() || res.url().to_string().contains("login") {
+            self.session.set_authenticated(false);
+            return Err(VtopError::SessionExpired);
+        }
+
+        let text = res.text().await.map_err(|_| VtopError::VtopServerError)?;
+        Ok(text)
+    }
+
     // faculty search
     pub async fn get_faculty_search(
         &mut self,

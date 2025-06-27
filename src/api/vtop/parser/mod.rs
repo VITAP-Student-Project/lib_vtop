@@ -8,3 +8,5 @@ pub mod parsesched;
 pub mod parsett;
 // parse biometric data
 pub mod parsebiometric;
+// parse faculty search
+pub mod parsesearch;

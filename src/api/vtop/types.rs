@@ -1,5 +1,5 @@
 use flutter_rust_bridge::frb;
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[frb(dart_metadata=("freezed", "immutable" import "package:meta/meta.dart" as meta))]
 #[frb]
@@ -182,4 +182,14 @@ pub struct BiometricData {
     pub records: Vec<BiometricRecord>,
     pub from_date: String,
     pub update_time: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(dart_metadata=("freezed", "immutable" import "package:meta/meta.dart" as meta))]
+#[frb]
+pub struct GetFaculty {
+    pub faculty_name: String,
+    pub designation: String,
+    pub school_or_centre: String,
+    pub emp_id: String,
 }

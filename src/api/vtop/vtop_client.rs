@@ -1,3 +1,5 @@
+use crate::api::vtop::types;
+
 pub use super::types::*;
 pub use super::{
     parser::*,
@@ -46,6 +48,45 @@ impl VtopClient {
         }
         Ok(data)
     }
+
+// faculty search 
+    pub async fn get_faculty_search(
+        &mut self,
+        search_term: String,
+    ) -> VtopResult<types::GetFaculty> {
+        if !self.session.is_authenticated() {
+            return Err(VtopError::SessionExpired);
+        }
+        let url = format!("{}/vtop/hrms/EmployeeSearchForStudent", self.config.base_url);
+        let body = format!(
+            "_csrf={}&empId={}&authorizedID={}",
+            self.session
+                .get_csrf_token()
+                .ok_or(VtopError::SessionExpired)?,
+            urlencoding::encode(&search_term),
+            self.username
+        );
+
+        let res = self
+            .client
+            .post(url)
+            .body(body)
+            .send()
+            .await
+            .map_err(|_| VtopError::NetworkError)?;
+
+        if !res.status().is_success() || res.url().to_string().contains("login") {
+            self.session.set_authenticated(false);
+            return Err(VtopError::SessionExpired);
+        }
+
+        let text = res.text().await.map_err(|_| VtopError::VtopServerError)?;
+        // print!("Fetched faculty search data: {}", text);
+        Ok(parsesearch::parse_faculty_search(text))
+    }
+
+
+// faculty get data from search  
 
     pub async fn get_biometric_data(&mut self, date: String) -> VtopResult<BiometricData> {
         if !self.session.is_authenticated() {

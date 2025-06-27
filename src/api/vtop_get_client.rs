@@ -1,7 +1,7 @@
 use crate::api::vtop::{
     types::{
         AttendanceData, BiometricData, BiometricRecord, ExamScheduleData, FullAttendanceData,
-        MarksData, SemesterData, TimetableData,
+        GetFaculty, MarksData, SemesterData, TimetableData,
     },
     vtop_client::{VtopClient, VtopError},
     vtop_config::VtopClientBuilder,
@@ -87,4 +87,13 @@ pub async fn fetch_biometric_data(
     date: String,
 ) -> Result<BiometricData, VtopError> {
     client.get_biometric_data(date).await
+}
+
+
+#[flutter_rust_bridge::frb()]
+pub async fn fetch_faculty_search(
+    client: &mut VtopClient,
+    search_term: String,
+) -> Result<GetFaculty, VtopError> {
+    client.get_faculty_search(search_term).await
 }

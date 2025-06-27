@@ -119,6 +119,7 @@ impl VtopClient {
         }
 
         let text = res.text().await.map_err(|_| VtopError::VtopServerError)?;
+        print!("Fetched faculty data: {}", text);
         let faculty_details = parser::faculty::parseabout::parse_faculty_data(text);
         Ok(faculty_details)
     }

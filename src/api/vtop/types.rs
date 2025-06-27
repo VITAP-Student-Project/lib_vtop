@@ -204,4 +204,13 @@ pub struct FacultyDetails {
     pub school_centre: String,
     pub email: String,
     pub cabin_number: String,
+    pub office_hours: Vec<OfficeHour>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(dart_metadata=("freezed", "immutable" import "package:meta/meta.dart" as meta))]
+#[frb]
+pub struct OfficeHour {
+    pub day: String,
+    pub timings: String,
 }

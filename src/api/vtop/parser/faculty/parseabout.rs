@@ -14,9 +14,13 @@ pub fn parse_faculty_data(html: String) -> FacultyDetails {
         school_centre: String::new(),
         email: String::new(),
         cabin_number: String::new(),
+        office_hours: Vec::new(),
     };
     
-    if let Some(table) = document.select(&table_selector).next() {
+    let tables: Vec<_> = document.select(&table_selector).collect();
+    
+    // Parse first table (faculty details)
+    if let Some(table) = tables.get(0) {
         for row in table.select(&row_selector) {
             let cells: Vec<_> = row.select(&cell_selector).collect();
             if cells.len() >= 2 {
@@ -62,6 +66,38 @@ pub fn parse_faculty_data(html: String) -> FacultyDetails {
         }
     }
     
+    // Parse second table (office hours)
+    if let Some(table) = tables.get(1) {
+        for row in table.select(&row_selector) {
+            let cells: Vec<_> = row.select(&cell_selector).collect();
+            // Skip header rows and only process data rows with 2 or 3 cells
+            if cells.len() >= 2 && !cells[0].text().collect::<String>().to_lowercase().contains("week day") {
+                let day = cells[0]
+                    .text()
+                    .collect::<Vec<_>>()
+                    .join("")
+                    .trim()
+                    .replace("\t", "")
+                    .replace("\n", "");
+                
+                let timings = cells[1]
+                    .text()
+                    .collect::<Vec<_>>()
+                    .join("")
+                    .trim()
+                    .replace("\t", "")
+                    .replace("\n", "");
+                
+                // Only add if both day and timings are not empty
+                if !day.is_empty() && !timings.is_empty() && !day.to_lowercase().contains("open hours") {
+                    faculty_details.office_hours.push(OfficeHour {
+                        day,
+                        timings,
+                    });
+                }
+            }
+        }
+    }
+    
     faculty_details
 }
-                   

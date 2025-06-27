@@ -119,4 +119,3 @@ pub fn parse_hostel_leave(html: String) -> HostelLeaveData {
             .as_secs(),
     }
 }
-    

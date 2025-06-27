@@ -161,3 +161,25 @@ pub struct SemesterData {
     pub semesters: Vec<SemesterInfo>,
     pub update_time: u64,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(dart_metadata=("freezed", "immutable" import "package:meta/meta.dart" as meta))]
+#[frb]
+pub struct BiometricRecord {
+    pub serial: String,
+    pub date: String,
+    pub day: String,
+    pub in_time: String,
+    pub out_time: String,
+    pub duration: String,
+    pub location: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(dart_metadata=("freezed", "immutable" import "package:meta/meta.dart" as meta))]
+#[frb]
+pub struct BiometricData {
+    pub records: Vec<BiometricRecord>,
+    pub from_date: String,
+    pub update_time: u64,
+}

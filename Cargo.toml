@@ -16,6 +16,7 @@ base = "0.1.0"
 base64 = "0.22.1"
 tokio = "1.43.0"
 urlencoding = "2"
+chrono = "0.4.41"
 
 [patch.crates-io]
 web-sys = { git = "https://github.com/rustwasm/wasm-bindgen", package = "web-sys" }

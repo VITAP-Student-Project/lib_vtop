@@ -6,4 +6,5 @@ pub mod parsemarks;
 pub mod parsesched;
 // parse time table
 pub mod parsett;
-mod parsebiometric;
+// parse biometric data
+pub mod parsebiometric;

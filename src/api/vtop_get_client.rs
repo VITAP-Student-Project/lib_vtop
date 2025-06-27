@@ -1,7 +1,7 @@
 use crate::api::vtop::{
     types::{
-        AttendanceData, ExamScheduleData, FullAttendanceData, MarksData, SemesterData,
-        TimetableData,
+        AttendanceData, BiometricData, BiometricRecord, ExamScheduleData, FullAttendanceData,
+        MarksData, SemesterData, TimetableData,
     },
     vtop_client::{VtopClient, VtopError},
     vtop_config::VtopClientBuilder,
@@ -79,4 +79,12 @@ pub async fn fetch_is_auth(client: &mut VtopClient) -> bool {
 #[flutter_rust_bridge::frb()]
 pub async fn fetch_wifi(username: String, password: String, i: i32) -> (bool, String) {
     wifi_login_logout(i, username, password).await
+}
+
+#[flutter_rust_bridge::frb()]
+pub async fn fetch_biometric_data(
+    client: &mut VtopClient,
+    date: String,
+) -> Result<BiometricData, VtopError> {
+    client.get_biometric_data(date).await
 }

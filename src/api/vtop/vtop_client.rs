@@ -47,6 +47,40 @@ impl VtopClient {
         Ok(data)
     }
 
+    pub async fn get_biometric_data(&mut self, date: String) -> VtopResult<BiometricData> {
+        if !self.session.is_authenticated() {
+            return Err(VtopError::SessionExpired);
+        }
+        let url = format!("{}/vtop/getStudBioHistory", self.config.base_url);
+        let body = format!(
+            "_csrf={}&fromDate={}&authorizedID={}&x={}",
+            self.session
+                .get_csrf_token()
+                .ok_or(VtopError::SessionExpired)?,
+            date,
+            self.username,
+            chrono::Utc::now().to_rfc2822()
+        );
+
+        let res = self
+            .client
+            .post(url)
+            .body(body)
+            .send()
+            .await
+            .map_err(|_| VtopError::NetworkError)?;
+
+        if !res.status().is_success() || res.url().to_string().contains("login") {
+            self.session.set_authenticated(false);
+            return Err(VtopError::SessionExpired);
+        }
+
+        let text = res.text().await.map_err(|_| VtopError::VtopServerError)?;
+        // Using println! instead of print! for better formatting
+
+        Ok(parsebiometric::parse_biometric_data(text, date))
+    }
+
     pub async fn get_semesters(&mut self) -> VtopResult<SemesterData> {
         if !self.session.is_authenticated() {
             return Err(VtopError::SessionExpired);

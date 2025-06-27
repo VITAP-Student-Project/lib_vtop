@@ -193,3 +193,15 @@ pub struct GetFaculty {
     pub school_or_centre: String,
     pub emp_id: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(dart_metadata=("freezed", "immutable" import "package:meta/meta.dart" as meta))]
+#[frb]
+pub struct FacultyDetails {
+    pub name: String,
+    pub designation: String,
+    pub department: String,
+    pub school_centre: String,
+    pub email: String,
+    pub cabin_number: String,
+}

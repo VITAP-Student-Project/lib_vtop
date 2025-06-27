@@ -1,13 +1,15 @@
-use crate::api::vtop::types;
+use crate::api::vtop::{parser, types};
 
 pub use super::types::*;
-pub use super::{
-    parser::*,
-    session_manager::SessionManager,
-    types::{AttendanceData, ExamScheduleData, FullAttendanceData},
-    vtop_config::VtopConfig,
-    vtop_errors::{VtopError, VtopResult},
-};
+pub use super::vtop_errors::VtopError;
+pub use super::vtop_errors::VtopResult;
+pub use super::vtop_config::VtopConfig;
+pub use super::types::AttendanceData;
+pub use super::types::ExamScheduleData;
+pub use super::types::FullAttendanceData;
+pub use super::session_manager::SessionManager;
+pub use super::parser::*;
+
 use base64::{engine::general_purpose::URL_SAFE, Engine as _};
 #[cfg(not(target_arch = "wasm32"))]
 pub use reqwest::cookie::{CookieStore, Jar};
@@ -19,6 +21,7 @@ use reqwest::{
 use scraper::{Html, Selector};
 use serde::Serialize;
 use std::sync::Arc;
+use crate::api::vtop;
 
 pub struct VtopClient {
     client: Client,
@@ -82,11 +85,43 @@ impl VtopClient {
 
         let text = res.text().await.map_err(|_| VtopError::VtopServerError)?;
         // print!("Fetched faculty search data: {}", text);
-        Ok(parsesearch::parse_faculty_search(text))
+        Ok(parser::faculty::parsesearch::parse_faculty_search(text))
     }
 
 
 // faculty get data from search  
+    pub async fn get_faculty_data(&mut self, emp_id: String) -> VtopResult<FacultyDetails> {
+        if !self.session.is_authenticated() {
+            return Err(VtopError::SessionExpired);
+        }
+        let url = format!("{}/vtop/hrms/EmployeeSearch1ForStudent", self.config.base_url);
+        let body = format!(
+            "_csrf={}&empId={}&authorizedID={}&x={}",
+            self.session
+                .get_csrf_token()
+                .ok_or(VtopError::SessionExpired)?,
+            emp_id,
+            self.username,
+            chrono::Utc::now().to_rfc2822()
+        );
+
+        let res = self
+            .client
+            .post(url)
+            .body(body)
+            .send()
+            .await
+            .map_err(|_| VtopError::NetworkError)?;
+
+        if !res.status().is_success() || res.url().to_string().contains("login") {
+            self.session.set_authenticated(false);
+            return Err(VtopError::SessionExpired);
+        }
+
+        let text = res.text().await.map_err(|_| VtopError::VtopServerError)?;
+        let faculty_details = parser::faculty::parseabout::parse_faculty_data(text);
+        Ok(faculty_details)
+    }
 
     pub async fn get_biometric_data(&mut self, date: String) -> VtopResult<BiometricData> {
         if !self.session.is_authenticated() {

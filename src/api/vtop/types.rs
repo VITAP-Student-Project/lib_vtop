@@ -253,3 +253,28 @@ pub struct OutingFormData {
     pub out_time: String,
     pub parent_contact_number: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(dart_metadata=("freezed", "immutable" import "package:meta/meta.dart" as meta))]
+#[frb]
+pub struct LeaveRecord {
+    pub serial: String,
+    pub registration_number: String,
+    pub place_of_visit: String,
+    pub purpose_of_visit: String,
+    pub from_date: String,
+    pub from_time: String,
+    pub to_date: String,
+    pub to_time: String,
+    pub status: String,
+    pub can_download: bool,
+    pub leave_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(dart_metadata=("freezed", "immutable" import "package:meta/meta.dart" as meta))]
+#[frb]
+pub struct HostelLeaveData {
+    pub records: Vec<LeaveRecord>,
+    pub update_time: u64,
+}

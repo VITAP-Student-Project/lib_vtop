@@ -52,6 +52,38 @@ impl VtopClient {
         Ok(data)
     }
 
+    // Hostel Get Leave Report
+    pub async fn get_hostel_leave_report(&mut self) -> VtopResult<HostelLeaveData> {
+        if !self.session.is_authenticated() {
+            return Err(VtopError::SessionExpired);
+        }
+        let url = format!("{}/vtop/hostel/StudentGeneralOuting", self.config.base_url);
+        let body = format!(
+            "_csrf={}&authorizedID={}",
+            self.session
+                .get_csrf_token()
+                .ok_or(VtopError::SessionExpired)?,
+            self.username
+        );
+
+        let res = self
+            .client
+            .post(url)
+            .body(body)
+            .send()
+            .await
+            .map_err(|_| VtopError::NetworkError)?;
+
+        if !res.status().is_success() || res.url().to_string().contains("login") {
+            self.session.set_authenticated(false);
+            return Err(VtopError::SessionExpired);
+        }
+
+        let text = res.text().await.map_err(|_| VtopError::VtopServerError)?;
+        let leave_data = parser::hostel::parseleave::parse_hostel_leave(text);
+        Ok(leave_data)
+    }
+
     // Hostel Get Report
 
     pub async fn get_hostel_report(&mut self) -> VtopResult<HostelOutingData> {

@@ -1,6 +1,6 @@
 use crate::api::vtop::{
     types::{
-        AttendanceData, BiometricData, BiometricRecord, ExamScheduleData, FacultyDetails, FullAttendanceData, GetFaculty, MarksData, SemesterData, TimetableData, HostelOutingData
+        AttendanceData, BiometricData, BiometricRecord, ExamScheduleData, FacultyDetails, FullAttendanceData, GetFaculty, MarksData, SemesterData, TimetableData, HostelOutingData, HostelLeaveData
     },
     vtop_client::{VtopClient, VtopError},
     vtop_config::VtopClientBuilder,
@@ -130,4 +130,11 @@ pub async fn submit_hostel_outing_form(
     out_time: String,
 ) -> Result<String, VtopError> {
     client.submit_outing_form(purpose_of_visit, outing_date, contact_number, out_place, out_time).await
+}
+
+#[flutter_rust_bridge::frb()]
+pub async fn leave_report(
+    client: &mut VtopClient,
+) -> Result<HostelLeaveData, VtopError> {
+    client.get_hostel_leave_report().await
 }

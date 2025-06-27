@@ -214,3 +214,30 @@ pub struct OfficeHour {
     pub day: String,
     pub timings: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(dart_metadata=("freezed", "immutable" import "package:meta/meta.dart" as meta))]
+#[frb]
+pub struct OutingRecord {
+    pub serial: String,
+    pub registration_number: String,
+    pub hostel_block: String,
+    pub room_number: String,
+    pub place_of_visit: String,
+    pub purpose_of_visit: String,
+    pub time: String,
+    pub contact_number: String,
+    pub parent_contact_number: String,
+    pub date: String,
+    pub booking_id: String,
+    pub status: String,
+    pub can_download: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(dart_metadata=("freezed", "immutable" import "package:meta/meta.dart" as meta))]
+#[frb]
+pub struct HostelOutingData {
+    pub records: Vec<OutingRecord>,
+    pub update_time: u64,
+}

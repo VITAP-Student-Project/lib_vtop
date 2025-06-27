@@ -1,6 +1,6 @@
 use crate::api::vtop::{
     types::{
-        AttendanceData, BiometricData, BiometricRecord, ExamScheduleData, FacultyDetails, FullAttendanceData, GetFaculty, MarksData, SemesterData, TimetableData 
+        AttendanceData, BiometricData, BiometricRecord, ExamScheduleData, FacultyDetails, FullAttendanceData, GetFaculty, MarksData, SemesterData, TimetableData, HostelOutingData
     },
     vtop_client::{VtopClient, VtopError},
     vtop_config::VtopClientBuilder,
@@ -103,4 +103,11 @@ pub async fn fetch_faculty_data(
     emp_id: String,
 ) -> Result<FacultyDetails, VtopError> {
     client.get_faculty_data(emp_id).await
+}
+
+#[flutter_rust_bridge::frb()]
+pub async fn fetch_hostel_report(
+    client: &mut VtopClient,
+) -> Result<HostelOutingData, VtopError> {
+    client.get_hostel_report().await
 }

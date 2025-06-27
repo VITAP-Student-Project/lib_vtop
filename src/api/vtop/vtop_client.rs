@@ -1,14 +1,14 @@
 use crate::api::vtop::{parser, types};
 
-pub use super::types::*;
-pub use super::vtop_errors::VtopError;
-pub use super::vtop_errors::VtopResult;
-pub use super::vtop_config::VtopConfig;
+pub use super::parser::*;
+pub use super::session_manager::SessionManager;
 pub use super::types::AttendanceData;
 pub use super::types::ExamScheduleData;
 pub use super::types::FullAttendanceData;
-pub use super::session_manager::SessionManager;
-pub use super::parser::*;
+pub use super::types::*;
+pub use super::vtop_config::VtopConfig;
+pub use super::vtop_errors::VtopError;
+pub use super::vtop_errors::VtopResult;
 
 use base64::{engine::general_purpose::URL_SAFE, Engine as _};
 #[cfg(not(target_arch = "wasm32"))]
@@ -18,10 +18,10 @@ use reqwest::{
     multipart, Client, Url,
 };
 
+use crate::api::vtop;
 use scraper::{Html, Selector};
 use serde::Serialize;
 use std::sync::Arc;
-use crate::api::vtop;
 
 pub struct VtopClient {
     client: Client,
@@ -52,7 +52,40 @@ impl VtopClient {
         Ok(data)
     }
 
-// faculty search 
+    // Hostel Get Report
+
+    pub async fn get_hostel_report(&mut self) -> VtopResult<HostelOutingData> {
+        if !self.session.is_authenticated() {
+            return Err(VtopError::SessionExpired);
+        }
+        let url = format!("{}/vtop/hostel/StudentWeekendOuting", self.config.base_url);
+        let body = format!(
+            "_csrf={}&authorizedID={}",
+            self.session
+                .get_csrf_token()
+                .ok_or(VtopError::SessionExpired)?,
+            self.username
+        );
+
+        let res = self
+            .client
+            .post(url)
+            .body(body)
+            .send()
+            .await
+            .map_err(|_| VtopError::NetworkError)?;
+
+        if !res.status().is_success() || res.url().to_string().contains("login") {
+            self.session.set_authenticated(false);
+            return Err(VtopError::SessionExpired);
+        }
+
+        let text = res.text().await.map_err(|_| VtopError::VtopServerError)?;
+        let hostel_data = parser::hostel::parseoutings::parse_hostel_outing(text);
+        Ok(hostel_data)
+    }
+
+    // faculty search
     pub async fn get_faculty_search(
         &mut self,
         search_term: String,
@@ -60,7 +93,10 @@ impl VtopClient {
         if !self.session.is_authenticated() {
             return Err(VtopError::SessionExpired);
         }
-        let url = format!("{}/vtop/hrms/EmployeeSearchForStudent", self.config.base_url);
+        let url = format!(
+            "{}/vtop/hrms/EmployeeSearchForStudent",
+            self.config.base_url
+        );
         let body = format!(
             "_csrf={}&empId={}&authorizedID={}",
             self.session
@@ -88,13 +124,15 @@ impl VtopClient {
         Ok(parser::faculty::parsesearch::parse_faculty_search(text))
     }
 
-
-// faculty get data from search  
+    // faculty get data from search
     pub async fn get_faculty_data(&mut self, emp_id: String) -> VtopResult<FacultyDetails> {
         if !self.session.is_authenticated() {
             return Err(VtopError::SessionExpired);
         }
-        let url = format!("{}/vtop/hrms/EmployeeSearch1ForStudent", self.config.base_url);
+        let url = format!(
+            "{}/vtop/hrms/EmployeeSearch1ForStudent",
+            self.config.base_url
+        );
         let body = format!(
             "_csrf={}&empId={}&authorizedID={}&x={}",
             self.session

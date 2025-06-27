@@ -10,3 +10,4 @@ pub mod parsett;
 pub mod parsebiometric;
 pub mod faculty;
 
+pub mod hostel;

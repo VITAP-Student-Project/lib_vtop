@@ -15,35 +15,33 @@ pub fn parse_hostel_leave(html: String) -> HostelLeaveData {
         for row in table.select(&row_selector).skip(1) {
             let cells: Vec<_> = row.select(&cell_selector).collect();
             
-            if cells.len() >= 11 {
+            if cells.len() >= 12 {
                 let status_text = cells[10]
                     .text()
                     .collect::<Vec<_>>()
                     .join("")
                     .trim()
                     .replace("\t", "")
-                    .replace("\n", "");
+                    .replace("\n", "")
+                    .replace("Leave Request Accepted", "Leave Request Accepted")
+                    .replace("Leave Request", "");
                 
-                // Check if download link exists in the last column
-                let download_selector = Selector::parse("a.btn").unwrap();
-                let can_download = cells.get(11)
-                    .map(|cell| cell.select(&download_selector).next().is_some())
-                    .unwrap_or(false);
-                
-                // Extract leave ID from data-url attribute
-                let leave_id = if let Some(cell) = cells.get(11) {
+                // Check if download link exists in the last column (index 11)
+                let download_selector = Selector::parse("a[data-url]").unwrap();
+                let (can_download, leave_id) = if let Some(cell) = cells.get(11) {
                     if let Some(link) = cell.select(&download_selector).next() {
                         if let Some(data_url) = link.value().attr("data-url") {
                             // Extract ID from data-url like "/vtop/hostel/downloadLeavePass/L2257300"
-                            data_url.split('/').last().unwrap_or("").to_string()
+                            let id = data_url.split('/').last().unwrap_or("").to_string();
+                            (true, id)
                         } else {
-                            String::new()
+                            (false, String::new())
                         }
                     } else {
-                        String::new()
+                        (false, String::new())
                     }
                 } else {
-                    String::new()
+                    (false, String::new())
                 };
                 
                 let record = LeaveRecord {
@@ -103,7 +101,7 @@ pub fn parse_hostel_leave(html: String) -> HostelLeaveData {
                         .trim()
                         .replace("\t", "")
                         .replace("\n", ""),
-                    status: status_text,
+                    status: status_text.trim().to_string(),
                     can_download,
                     leave_id,
                 };
@@ -121,3 +119,4 @@ pub fn parse_hostel_leave(html: String) -> HostelLeaveData {
             .as_secs(),
     }
 }
+    

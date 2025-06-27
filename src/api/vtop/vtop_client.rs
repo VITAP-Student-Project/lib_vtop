@@ -84,6 +84,34 @@ impl VtopClient {
         Ok(leave_data)
     }
 
+    // Hostel Get Leave PDF
+    pub async fn get_hostel_leave_pdf(&mut self, leave_id: String) -> VtopResult<Vec<u8>> {
+        if !self.session.is_authenticated() {
+            return Err(VtopError::SessionExpired);
+        }
+        let url = format!(
+            "{}/vtop/hostel/downloadLeavePass/{}?authorizedID={}&_csrf={}&x={}",
+            self.config.base_url, leave_id, self.username,
+            self.session.get_csrf_token().ok_or(VtopError::SessionExpired)?,
+            chrono::Utc::now().to_rfc2822()
+        );
+
+        let res = self
+            .client
+            .get(url)
+            .send()
+            .await
+            .map_err(|_| VtopError::NetworkError)?;
+
+        if !res.status().is_success() || res.url().to_string().contains("login") {
+            self.session.set_authenticated(false);
+            return Err(VtopError::SessionExpired);
+        }
+
+        let bytes = res.bytes().await.map_err(|_| VtopError::VtopServerError)?;
+        Ok(bytes.to_vec())
+    }
+
     // Hostel Get Report
 
     pub async fn get_hostel_report(&mut self) -> VtopResult<HostelOutingData> {

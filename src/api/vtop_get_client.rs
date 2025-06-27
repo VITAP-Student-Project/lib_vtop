@@ -138,3 +138,11 @@ pub async fn leave_report(
 ) -> Result<HostelLeaveData, VtopError> {
     client.get_hostel_leave_report().await
 }
+
+#[flutter_rust_bridge::frb()]
+pub async fn leave_report_download(
+    client: &mut VtopClient,
+    leave_id: String,
+) -> Result<Vec<u8>, VtopError> {
+    client.get_hostel_leave_pdf(leave_id).await
+}

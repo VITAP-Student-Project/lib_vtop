@@ -1,5 +1,15 @@
-use lib_vtop::api;
+mod api;
+
+use std::fs;
+use std::io::Write;
+
 use std::env;
+
+use env_logger::init;
+
+fn info() -> &'static str {
+    "lib_vtop v0.1.0"
+}
 
 #[tokio::main]
 async fn main() {
@@ -7,10 +17,10 @@ async fn main() {
     env_logger::init();
     
     println!("=== lib_vtop Dry Run Demo ===");
-    println!("Library: {}", lib_vtop::info());
+    println!("Library: {}", info());
     
     // Initialize the library
-    lib_vtop::init();
+    init();
     
     // Test basic greeting functionality
     let greeting = api::simple::greet("Dry Run User".to_string());

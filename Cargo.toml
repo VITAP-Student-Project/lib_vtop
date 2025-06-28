@@ -10,7 +10,7 @@ documentation = "https://docs.rs/lib_vtop"
 readme = "README.md"
 keywords = ["vtop", "api", "education"]
 categories = ["api-bindings", "web-programming"]
-authors = ["VITAP Students <mfvitap@gmail.com>"]
+authors = ["VITAP Students <sanjay@nullvijayawada.org>"]
 
 [lib]
 crate-type = ["cdylib", "staticlib"]

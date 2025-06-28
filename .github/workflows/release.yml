@@ -72,8 +72,15 @@ jobs:
         run: |
           if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
             echo "Running dry-run release..."
-            cargo release --dry-run ${{ github.event.inputs.release_type || 'auto' }}
+            if [[ "${{ github.event.inputs.release_type }}" == "auto" ]]; then
+              cargo release --dry-run
+            else
+              cargo release --dry-run ${{ github.event.inputs.release_type }}
+            fi
           else
-            cargo release ${{ github.event.inputs.release_type || 'auto' }} --execute
-          fi
+            if [[ "${{ github.event.inputs.release_type }}" == "auto" ]]; then
+              cargo release --execute
+            else
+              cargo release ${{ github.event.inputs.release_type }} --execute
+            fi
           fi
